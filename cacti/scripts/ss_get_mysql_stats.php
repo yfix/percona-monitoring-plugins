@@ -835,7 +835,7 @@ function ss_get_mysql_stats( $options ) {
 		$out = array();
 		foreach ($keys as $key => $short ) {
 			$key_for_zbx = 'MySQL.'.str_replace('_', '-', $key);
-			$out[$key_for_zbx] = $key_for_zbx.' '.(isset($status[$key]) ? $status[$key] : -1);
+			$out[$key_for_zbx] = '"'.$key_for_zbx.'" "'.(isset($status[$key]) ? $status[$key] : -1).'"';
 		}
 		print implode(PHP_EOL, $out).PHP_EOL;
 		exit;
