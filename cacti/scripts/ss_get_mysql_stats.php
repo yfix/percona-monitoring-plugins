@@ -211,7 +211,7 @@ Usage: php ss_get_mysql_stats.php --host <host> --items <item,...> [OPTION]
    --server-id          Server id to associate with a heartbeat if heartbeat usage is enabled
    --nocache            Do not cache results in a file
    --help               Show usage
-   --long-out			(@yfix) Long direct out of all items for zabbix sender
+   --long-out			(@yfix) Long direct out all items, consists of hostname for zabbix sender
 
 EOF;
    die($usage);
@@ -832,10 +832,11 @@ function ss_get_mysql_stats( $options ) {
       'pool_read_requests'          =>  'qp',
    );
 	if ($options['long-out']) {
+		$zbx_agent_host = $options['long-out'];
 		$out = array();
 		foreach ($keys as $key => $short ) {
 			$key_for_zbx = 'MySQL.'.str_replace('_', '-', $key);
-			$out[$key_for_zbx] = '"'.$key_for_zbx.'" "'.(isset($status[$key]) ? $status[$key] : -1).'"';
+			$out[$key_for_zbx] = '"'.$zbx_agent_host.'" "'.$key_for_zbx.'" "'.(isset($status[$key]) ? $status[$key] : -1).'"';
 		}
 		print implode(PHP_EOL, $out).PHP_EOL;
 		exit;
