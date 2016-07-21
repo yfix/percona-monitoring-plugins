@@ -45,7 +45,7 @@ $heartbeat_table = 'percona.heartbeat'; # db.tbl.
 
 $cache_dir  = '/tmp';  # If set, this uses caching to avoid multiple calls.
 $poll_time  = 300;     # Adjust to match your polling interval.
-$timezone   = null;    # If not set, uses the system default.  Example: "UTC"
+$timezone   = null;    # If not set, uses the system default.  Example: 'UTC'
 $chk_options = array (
    'innodb'  => true,    # Do you want to check InnoDB statistics?
    'master'  => true,    # Do you want to check binary logging?
@@ -86,24 +86,24 @@ if ( $debug ) {
 else {
    ini_set('error_reporting', E_ERROR);
 }
-ob_start(); # Catch all output such as notices of undefined array indexes.
+ob_start(); // Catch all output such as notices of undefined array indexes.
 function error_handler($errno, $errstr, $errfile, $errline) {
-   print("$errstr at $errfile line $errline\n");
-   debug("$errstr at $errfile line $errline");
+   print($errstr.' at '.$errfile.' line '.$errline. PHP_EOL);
+   debug($errstr.' at '.$errfile.' line '.$errline);
 }
 # ============================================================================
 # Set up the stuff we need to be called by the script server.
 # ============================================================================
 if ( $use_ss ) {
-   if ( file_exists( dirname(__FILE__) . "/../include/global.php") ) {
-      # See issue 5 for the reasoning behind this.
-      debug("including " . dirname(__FILE__) . "/../include/global.php");
-      include_once(dirname(__FILE__) . "/../include/global.php");
+   if ( file_exists( dirname(__FILE__) . '/../include/global.php') ) {
+      // See issue 5 for the reasoning behind this.
+      debug('including ' . dirname(__FILE__) . '/../include/global.php');
+      include_once(dirname(__FILE__) . '/../include/global.php');
    }
-   elseif ( file_exists( dirname(__FILE__) . "/../include/config.php" ) ) {
-      # Some Cacti installations don't have global.php.
-      debug("including " . dirname(__FILE__) . "/../include/config.php");
-      include_once(dirname(__FILE__) . "/../include/config.php");
+   elseif ( file_exists( dirname(__FILE__) . '/../include/config.php' ) ) {
+      // Some Cacti installations don't have global.php.
+      debug('including ' . dirname(__FILE__) . '/../include/config.php');
+      include_once(dirname(__FILE__) . '/../include/config.php');
    }
 }
 
@@ -111,8 +111,8 @@ if ( $use_ss ) {
 # Set the default timezone either to the configured, system timezone, or the
 # default set above in the script.
 # ============================================================================
-if ( function_exists("date_default_timezone_set")
-   && function_exists("date_default_timezone_get") ) {
+if ( function_exists('date_default_timezone_set')
+   && function_exists('date_default_timezone_get') ) {
    $tz = ($timezone ? $timezone : @date_default_timezone_get());
    if ( $tz ) {
       @date_default_timezone_set($tz);
@@ -123,9 +123,9 @@ if ( function_exists("date_default_timezone_set")
 # Make sure we can also be called as a script.
 # ============================================================================
 if (!isset($called_by_script_server)) {
-   debug($_SERVER["argv"]);
-   array_shift($_SERVER["argv"]); # Strip off this script's filename
-   $options = parse_cmdline($_SERVER["argv"]);
+   debug($_SERVER['argv']);
+   array_shift($_SERVER['argv']); // Strip off this script's filename
+   $options = parse_cmdline($_SERVER['argv']);
    validate_options($options);
    $result = ss_get_mysql_stats($options);
    debug($result);
@@ -145,12 +145,12 @@ if (!isset($called_by_script_server)) {
          $output[] = $item;
       }
    }
-   debug(array("Final result", $output));
+   debug(array('Final result', $output));
    print(implode(' ', $output));
 }
 
 # ============================================================================
-# End "if file was not included" section.
+# End 'if file was not included' section.
 # ============================================================================
 }
 
@@ -180,12 +180,12 @@ function validate_options($options) {
    # Required command-line options
    foreach ( array('host', 'items') as $option ) {
       if ( !isset($options[$option]) || !$options[$option] ) {
-         usage("Required option --$option is missing");
+         usage('Required option --'.$option.' is missing');
       }
    }
    foreach ( $options as $key => $val ) {
       if ( !in_array($key, $opts) ) {
-         usage("Unknown option --$key");
+         usage('Unknown option --'.$key);
       }
    }
 }
@@ -261,9 +261,9 @@ function ss_get_mysql_stats( $options ) {
    $connection_timeout = isset($options['connection-timeout']) ? $options['connection-timeout'] : $mysql_connection_timeout;
    $heartbeat_server_id = isset($options['server-id']) ? $options['server-id'] : $heartbeat_server_id;
 
-   $sanitized_host = str_replace(array(":", "/"), array("", "_"), $host);
-   $cache_file = "$cache_dir/$sanitized_host-mysql_cacti_stats.txt" . ($port != 3306 ? ":$port" : '');
-   debug("Cache file is $cache_file");
+   $sanitized_host = str_replace(array(':', '/'), array('', '_'), $host);
+   $cache_file = $cache_dir.'/'.$sanitized_host.'-mysql_cacti_stats.txt' . ($port != 3306 ? ':'.$port : '');
+   debug('Cache file is '.$cache_file);
 
    # First, check the cache.
    $fp = null;
@@ -275,12 +275,12 @@ function ss_get_mysql_stats( $options ) {
                && filectime($cache_file) + ($poll_time/2) > time()
                && ($arr = file($cache_file))
             ) {# The cache file is good to use.
-               debug("Using the cache file");
+               debug('Using the cache file');
                fclose($fp);
                return $arr[0];
             }
             else {
-               debug("The cache file seems too small or stale");
+               debug('The cache file seems too small or stale');
                # Escalate the lock to exclusive, so we can write to it.
                if ( flock($fp, 2) ) { # LOCK_EX
                   # We might have blocked while waiting for that LOCK_EX, and
@@ -290,7 +290,7 @@ function ss_get_mysql_stats( $options ) {
                      && filectime($cache_file) + ($poll_time/2) > time()
                      && ($arr = file($cache_file))
                   ) {# The cache file is good to use.
-                     debug("Using the cache file");
+                     debug('Using the cache file');
                      fclose($fp);
                      return $arr[0];
                   }
@@ -300,23 +300,23 @@ function ss_get_mysql_stats( $options ) {
          }
          else {
             $fp = null;
-            debug("Couldn't lock the cache file, ignoring it");
+            debug('Couldn\'t lock the cache file, ignoring it');
          }
       }
       else {
          $fp = null;
-         debug("Couldn't open the cache file");
+         debug('Couldn\'t open the cache file');
       }
    }
    else {
-      debug("Caching is disabled.");
+      debug('Caching is disabled.');
    }
 
    # Connect to MySQL.
    debug(array('Connecting to', $host, $port, $user, $pass));
    if ( !extension_loaded('mysqli') ) {
-      debug("PHP MySQLi extension is not loaded");
-      die("PHP MySQLi extension is not loaded");
+      debug('PHP MySQLi extension is not loaded');
+      die('PHP MySQLi extension is not loaded');
    }
    if ( $mysql_ssl ) {
       $conn = mysqli_init();
@@ -330,15 +330,15 @@ function ss_get_mysql_stats( $options ) {
       mysqli_real_connect($conn, $host, $user, $pass, NULL, $port, $socket, $flags);
    }
    if ( mysqli_connect_errno() ) {
-      debug("MySQL connection failed: " . mysqli_connect_error());
-      die("ERROR: " . mysqli_connect_error());
+      debug('MySQL connection failed: ' . mysqli_connect_error());
+      die('ERROR: ' . mysqli_connect_error());
    }
 
    # MySQL server version.
    # The form of this version number is main_version * 10000 + minor_version * 100 + sub_version
    # i.e. version 5.5.44 is 50544.
    $mysql_version = mysqli_get_server_version($conn);
-   debug("MySQL server version is " . $mysql_version);
+   debug('MySQL server version is ' . $mysql_version);
 
    # Set up variables.
    $status = array( # Holds the result of SHOW STATUS, SHOW INNODB STATUS, etc
@@ -376,13 +376,13 @@ function ss_get_mysql_stats( $options ) {
 
    # Get SHOW STATUS and convert the name-value array into a simple
    # associative array.
-   $result = run_query("SHOW /*!50002 GLOBAL */ STATUS", $conn);
+   $result = run_query('SHOW /*!50002 GLOBAL */ STATUS', $conn);
    foreach ( $result as $row ) {
       $status[$row[0]] = $row[1];
    }
 
    # Get SHOW VARIABLES and do the same thing, adding it to the $status array.
-   $result = run_query("SHOW VARIABLES", $conn);
+   $result = run_query('SHOW VARIABLES', $conn);
    foreach ( $result as $row ) {
       $status[$row[0]] = $row[1];
    }
@@ -390,11 +390,11 @@ function ss_get_mysql_stats( $options ) {
    # Get SHOW SLAVE STATUS, and add it to the $status array.
    if ( $chk_options['slave'] ) {
       # Leverage lock-free SHOW SLAVE STATUS if available
-      $result = run_query("SHOW SLAVE STATUS NONBLOCKING", $conn);
+      $result = run_query('SHOW SLAVE STATUS NONBLOCKING', $conn);
       if ( !$result ) {
-         $result = run_query("SHOW SLAVE STATUS NOLOCK", $conn);
+         $result = run_query('SHOW SLAVE STATUS NOLOCK', $conn);
          if ( !$result ) {
-            $result = run_query("SHOW SLAVE STATUS", $conn);
+            $result = run_query('SHOW SLAVE STATUS', $conn);
          }
       }
       $slave_status_rows_gotten = 0;
@@ -415,9 +415,9 @@ function ss_get_mysql_stats( $options ) {
                $now_func = 'UNIX_TIMESTAMP()';
             }
             $result2 = run_query(
-               "SELECT MAX($now_func - ROUND(UNIX_TIMESTAMP(ts)))"
-               . " AS delay FROM $heartbeat_table"
-               . " WHERE $heartbeat_server_id = 0 OR server_id = $heartbeat_server_id", $conn);
+               'SELECT MAX('.$now_func.' - ROUND(UNIX_TIMESTAMP(ts)))'
+               . ' AS delay FROM '.$heartbeat_table.''
+               . ' WHERE '.$heartbeat_server_id.' = 0 OR server_id = '.$heartbeat_server_id, $conn);
             $slave_delay_rows_gotten = 0;
             foreach ( $result2 as $row2 ) {
                $slave_delay_rows_gotten++;
@@ -427,11 +427,11 @@ function ss_get_mysql_stats( $options ) {
                   $status['slave_lag'] = $row2['delay'];
                }
                else {
-                  debug("Couldn't get slave lag from $heartbeat_table");
+                  debug('Couldn\'t get slave lag from '.$heartbeat_table);
                }
             }
             if ( $slave_delay_rows_gotten == 0 ) {
-               debug("Got nothing from heartbeat query");
+               debug('Got nothing from heartbeat query');
             }
          }
 
@@ -442,7 +442,7 @@ function ss_get_mysql_stats( $options ) {
             ? 0 : $status['slave_lag'];
       }
       if ( $slave_status_rows_gotten == 0 ) {
-         debug("Got nothing from SHOW SLAVE STATUS");
+         debug('Got nothing from SHOW SLAVE STATUS');
       }
    }
 
@@ -452,7 +452,7 @@ function ss_get_mysql_stats( $options ) {
          && $status['log_bin'] == 'ON'
    ) { # See issue #8
       $binlogs = array(0);
-      $result = run_query("SHOW MASTER LOGS", $conn);
+      $result = run_query('SHOW MASTER LOGS', $conn);
       foreach ( $result as $row ) {
          $row = array_change_key_case($row, CASE_LOWER);
          # Older versions of MySQL may not have the File_size column in the
@@ -479,23 +479,23 @@ function ss_get_mysql_stats( $options ) {
          if ( $state == '' ) {
             $state = 'none';
          }
-         # MySQL 5.5 replaces the 'Locked' state with a variety of "Waiting for
-         # X lock" types of statuses.  Wrap these all back into "Locked" because
-         # we don't really care about the type of locking it is.
+         // MySQL 5.5 replaces the 'Locked' state with a variety of 'Waiting for
+         // X lock' types of statuses.  Wrap these all back into 'Locked' because
+         // we don't really care about the type of locking it is.
          $state = preg_replace('/^(Table lock|Waiting for .*lock)$/', 'Locked', $state);
          $state = str_replace(' ', '_', strtolower($state));
-         if ( array_key_exists("State_$state", $status) ) {
-            increment($status, "State_$state", 1);
+         if ( array_key_exists('State_'.$state, $status) ) {
+            increment($status, 'State_'.$state, 1);
          }
          else {
-            increment($status, "State_other", 1);
+            increment($status, 'State_other', 1);
          }
       }
    }
 
    # Get SHOW ENGINES to be able to determine whether InnoDB is present.
    $engines = array();
-   $result = run_query("SHOW ENGINES", $conn);
+   $result = run_query('SHOW ENGINES', $conn);
    foreach ( $result as $row ) {
       $engines[$row[0]] = $row[1];
    }
@@ -507,7 +507,7 @@ function ss_get_mysql_stats( $options ) {
          && $engines['InnoDB'] == 'YES'
          || $engines['InnoDB'] == 'DEFAULT'
    ) {
-      $result        = run_query("SHOW /*!50000 ENGINE*/ INNODB STATUS", $conn);
+      $result        = run_query('SHOW /*!50000 ENGINE*/ INNODB STATUS', $conn);
       $istatus_text = $result[0]['Status'];
       $istatus_vals = get_innodb_array($istatus_text, $mysql_version);
 
@@ -521,9 +521,9 @@ function ss_get_mysql_stats( $options ) {
          debug('Getting query time histogram');
          $i = 0;
          $result = run_query(
-            "SELECT `count`, ROUND(total * 1000000) AS total "
-               . "FROM INFORMATION_SCHEMA.QUERY_RESPONSE_TIME "
-               . "WHERE `time` <> 'TOO LONG'",
+            'SELECT `count`, ROUND(total * 1000000) AS total '
+               . 'FROM INFORMATION_SCHEMA.QUERY_RESPONSE_TIME '
+               . 'WHERE `time` <> \'TOO LONG\'',
             $conn);
          foreach ( $result as $row ) {
             if ( $i > 13 ) {
@@ -531,8 +531,8 @@ function ss_get_mysql_stats( $options ) {
                # Don't add extra status counters.
                break;
             }
-            $count_key = sprintf("Query_time_count_%02d", $i);
-            $total_key = sprintf("Query_time_total_%02d", $i);
+            $count_key = sprintf('Query_time_count_%02d', $i);
+            $total_key = sprintf('Query_time_total_%02d', $i);
             $status[$count_key] = $row['count'];
             $status[$total_key] = $row['total'];
             $i++;
@@ -540,8 +540,8 @@ function ss_get_mysql_stats( $options ) {
          # It's also possible that the number of rows returned is too few.
          # Don't leave any status counters unassigned; it will break graphs.
          while ( $i <= 13 ) {
-            $count_key = sprintf("Query_time_count_%02d", $i);
-            $total_key = sprintf("Query_time_total_%02d", $i);
+            $count_key = sprintf('Query_time_count_%02d', $i);
+            $total_key = sprintf('Query_time_total_%02d', $i);
             $status[$count_key] = 0;
             $status[$total_key] = 0;
             $i++;
@@ -577,7 +577,7 @@ function ss_get_mysql_stats( $options ) {
       # If the SHOW STATUS value exists, override...
       foreach ( $overrides as $key => $val ) {
          if ( array_key_exists($key, $status) ) {
-            debug("Override $key");
+            debug('Override '.$key);
             $istatus_vals[$val] = $status[$key];
          }
       }
@@ -608,7 +608,7 @@ function ss_get_mysql_stats( $options ) {
       # TODO: I'm not sure what the deal is here; need to debug this.  But the
       # unflushed log bytes spikes a lot sometimes and it's impossible for it to
       # be more than the log buffer.
-      debug("Unflushed log: $status[unflushed_log]");
+      debug('Unflushed log: '.$status[unflushed_log]);
       $status['unflushed_log']
          = max($status['unflushed_log'], $status['innodb_log_buffer_size']);
    }
@@ -831,18 +831,18 @@ function ss_get_mysql_stats( $options ) {
       'pool_read_requests'          =>  'qp',
    );
 
-   # Return the output.
+   // Return the output.
    $output = array();
    foreach ($keys as $key => $short ) {
-      # If the value isn't defined, return -1 which is lower than (most graphs')
-      # minimum value of 0, so it'll be regarded as a missing value.
+      // If the value isn't defined, return -1 which is lower than (most graphs')
+      // minimum value of 0, so it'll be regarded as a missing value.
       $val      = isset($status[$key]) ? $status[$key] : -1;
-      $output[] = "$short:$val";
+      $output[] = $short.':'.$val;
    }
    $result = implode(' ', $output);
    if ( $fp ) {
       if ( fwrite($fp, $result) === FALSE ) {
-         die("Can't write '$cache_file'");
+         die('Can\'t write '.$cache_file);
       }
       fclose($fp);
    }
@@ -1092,18 +1092,18 @@ function get_innodb_array($text, $mysql_version) {
       }
 
       # LOG
-      elseif (strpos($line, " log i/o's done, ") > 0 ) {
+      elseif (strpos($line, ' log i/o\'s done, ') > 0 ) {
          # 3430041 log i/o's done, 17.44 log i/o's/second
          # 520835887 log i/o's done, 17.28 log i/o's/second, 518724686 syncs, 2980893 checkpoints
          # TODO: graph syncs and checkpoints
          $results['log_writes'] = to_int($row[0]);
       }
-      elseif (strpos($line, " pending log writes, ") > 0 ) {
+      elseif (strpos($line, ' pending log writes, ') > 0 ) {
          # 0 pending log writes, 0 pending chkp writes
          $results['pending_log_writes']  = to_int($row[0]);
          $results['pending_chkp_writes'] = to_int($row[4]);
       }
-      elseif (strpos($line, "Log sequence number") === 0 ) {
+      elseif (strpos($line, 'Log sequence number') === 0 ) {
          # This number is NOT printed in hex in InnoDB plugin.
          # Log sequence number 13093949495856 //plugin
          # Log sequence number 125 3934414864 //normal
@@ -1112,7 +1112,7 @@ function get_innodb_array($text, $mysql_version) {
             ? make_bigint($row[3], $row[4])
             : to_int($row[3]);
       }
-      elseif (strpos($line, "Log flushed up to") === 0 ) {
+      elseif (strpos($line, 'Log flushed up to') === 0 ) {
          # This number is NOT printed in hex in InnoDB plugin.
          # Log flushed up to   13093948219327
          # Log flushed up to   125 3934414864
@@ -1121,7 +1121,7 @@ function get_innodb_array($text, $mysql_version) {
             ? make_bigint($row[4], $row[5])
             : to_int($row[4]);
       }
-      elseif (strpos($line, "Last checkpoint at") === 0 ) {
+      elseif (strpos($line, 'Last checkpoint at') === 0 ) {
          # Last checkpoint at  125 3934293461
          $results['last_checkpoint']
             = isset($row[4])
@@ -1130,7 +1130,7 @@ function get_innodb_array($text, $mysql_version) {
       }
 
       # BUFFER POOL AND MEMORY
-      elseif (strpos($line, "Total memory allocated") === 0 && strpos($line, "in additional pool allocated") > 0 ) {
+      elseif (strpos($line, 'Total memory allocated') === 0 && strpos($line, 'in additional pool allocated') > 0 ) {
          # Total memory allocated 29642194944; in additional pool allocated 0
          # Total memory allocated by read views 96
          $results['total_mem_alloc']       = to_int($row[3]);
@@ -1168,31 +1168,31 @@ function get_innodb_array($text, $mysql_version) {
          #   innodb_io_pattern   0 	(0 + 0)
          $results['innodb_io_pattern_memory'] = to_int($row[1]);
       }
-      elseif (strpos($line, "Buffer pool size ") === 0 ) {
-         # The " " after size is necessary to avoid matching the wrong line:
+      elseif (strpos($line, 'Buffer pool size ') === 0 ) {
+         # The ' ' after size is necessary to avoid matching the wrong line:
          # Buffer pool size        1769471
          # Buffer pool size, bytes 28991012864
          $results['pool_size'] = to_int($row[3]);
       }
-      elseif (strpos($line, "Free buffers") === 0 ) {
+      elseif (strpos($line, 'Free buffers') === 0 ) {
          # Free buffers            0
          $results['free_pages'] = to_int($row[2]);
       }
-      elseif (strpos($line, "Database pages") === 0 ) {
+      elseif (strpos($line, 'Database pages') === 0 ) {
          # Database pages          1696503
          $results['database_pages'] = to_int($row[2]);
       }
-      elseif (strpos($line, "Modified db pages") === 0 ) {
+      elseif (strpos($line, 'Modified db pages') === 0 ) {
          # Modified db pages       160602
          $results['modified_pages'] = to_int($row[3]);
       }
-      elseif (strpos($line, "Pages read ahead") === 0 ) {
+      elseif (strpos($line, 'Pages read ahead') === 0 ) {
          # Must do this BEFORE the next test, otherwise it'll get fooled by this
          # line from the new plugin (see samples/innodb-015.txt):
          # Pages read ahead 0.00/s, evicted without access 0.06/s
          # TODO: No-op for now, see issue 134.
       }
-      elseif (strpos($line, "Pages read") === 0 ) {
+      elseif (strpos($line, 'Pages read') === 0 ) {
          # Pages read 15240822, created 1770238, written 21705836
          $results['pages_read']    = to_int($row[2]);
          $results['pages_created'] = to_int($row[4]);
@@ -1207,7 +1207,7 @@ function get_innodb_array($text, $mysql_version) {
          $results['rows_deleted']  = to_int($row[8]);
          $results['rows_read']     = to_int($row[10]);
       }
-      elseif (strpos($line, " queries inside InnoDB, ") > 0 ) {
+      elseif (strpos($line, ' queries inside InnoDB, ') > 0 ) {
          # 0 queries inside InnoDB, 0 queries in queue
          $results['queries_inside'] = to_int($row[0]);
          $results['queries_queued'] = to_int($row[4]);
@@ -1274,7 +1274,7 @@ function run_query($sql, $conn) {
       $error = @mysqli_error($conn);
       if ( $error ) {
          debug(array($sql, $error));
-         die("SQLERR $error in $sql");
+         die('SQLERR '.$error.' in '.$sql);
       }
    }
    $array = array();
@@ -1310,17 +1310,17 @@ function increment(&$arr, $key, $howmuch) {
 # ss_get_by_ssh.php.  $force is for testability.
 # ============================================================================
 function big_multiply ($left, $right, $force = null) {
-   if ( function_exists("gmp_mul") && (is_null($force) || $force == 'gmp') ) {
+   if ( function_exists('gmp_mul') && (is_null($force) || $force == 'gmp') ) {
       debug(array('gmp_mul', $left, $right));
       return gmp_strval( gmp_mul( $left, $right ));
    }
-   elseif ( function_exists("bcmul") && (is_null($force) || $force == 'bc') ) {
+   elseif ( function_exists('bcmul') && (is_null($force) || $force == 'bc') ) {
       debug(array('bcmul', $left, $right));
       return bcmul( $left, $right );
    }
    else { # Or $force == 'something else'
       debug(array('sprintf', $left, $right));
-      return sprintf("%.0f", $left * $right);
+      return sprintf('%.0f', $left * $right);
    }
 }
 
@@ -1333,11 +1333,11 @@ function big_sub ($left, $right, $force = null) {
    debug(array($left, $right));
    if ( is_null($left)  ) { $left = 0; }
    if ( is_null($right) ) { $right = 0; }
-   if ( function_exists("gmp_sub") && (is_null($force) || $force == 'gmp')) {
+   if ( function_exists('gmp_sub') && (is_null($force) || $force == 'gmp')) {
       debug(array('gmp_sub', $left, $right));
       return gmp_strval( gmp_sub( $left, $right ));
    }
-   elseif ( function_exists("bcsub") && (is_null($force) || $force == 'bc')) {
+   elseif ( function_exists('bcsub') && (is_null($force) || $force == 'bc')) {
       debug(array('bcsub', $left, $right));
       return bcsub( $left, $right );
    }
@@ -1355,11 +1355,11 @@ function big_sub ($left, $right, $force = null) {
 function big_add ($left, $right, $force = null) {
    if ( is_null($left)  ) { $left = 0; }
    if ( is_null($right) ) { $right = 0; }
-   if ( function_exists("gmp_add") && (is_null($force) || $force == 'gmp')) {
+   if ( function_exists('gmp_add') && (is_null($force) || $force == 'gmp')) {
       debug(array('gmp_add', $left, $right));
       return gmp_strval( gmp_add( $left, $right ));
    }
-   elseif ( function_exists("bcadd") && (is_null($force) || $force == 'bc')) {
+   elseif ( function_exists('bcadd') && (is_null($force) || $force == 'bc')) {
       debug(array('bcadd', $left, $right));
       return bcadd( $left, $right );
    }
