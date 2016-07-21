@@ -55,7 +55,6 @@ $chk_options = array (
 );
 
 $use_ss    = FALSE; // Whether to use the script server or not
-$use_ss    = FALSE; // Whether to use the script server or not
 $debug     = FALSE; // Define whether you want debugging behavior.
 $debug_log = FALSE; // If $debug_log is a filename, it'll be used.
 
@@ -172,7 +171,7 @@ if ( !function_exists('array_change_key_case') ) {
 # Validate that the command-line options are here and correct
 # ============================================================================
 function validate_options($options) {
-   $opts = array('host', 'items', 'user', 'pass', 'nocache', 'port', 'server-id');
+   $opts = array('host', 'items', 'user', 'pass', 'nocache', 'port', 'server-id', 'long-out');
    // Show help
    if ( array_key_exists('help', $options) ) {
       usage('');
@@ -212,6 +211,7 @@ Usage: php ss_get_mysql_stats.php --host <host> --items <item,...> [OPTION]
    --server-id          Server id to associate with a heartbeat if heartbeat usage is enabled
    --nocache            Do not cache results in a file
    --help               Show usage
+   --long-out			(@yfix) Long direct out of all items for zabbix sender
 
 EOF;
    die($usage);
@@ -831,6 +831,15 @@ function ss_get_mysql_stats( $options ) {
       'pool_reads'                  =>  'qo',
       'pool_read_requests'          =>  'qp',
    );
+	if ($options['long-out']) {
+		$out = array();
+		foreach ($keys as $key => $short ) {
+			$key_for_zbx = 'MySQL.'.str_replace('_', '-', $key);
+			$out[$key_for_zbx] = $key_for_zbx.' '.(isset($status[$key]) ? $status[$key] : -1);
+		}
+		print implode(PHP_EOL, $out).PHP_EOL;
+		exit;
+	}
 
    // Return the output.
    $output = array();
